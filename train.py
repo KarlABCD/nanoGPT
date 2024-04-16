@@ -31,6 +31,7 @@ from model import GPTConfig, GPT
 # 首先确保你的工作目录下有prepare.py文件，并且该文件中有encode函数
 # 然后将下面的代码替换为正确的导入语句
 from data.shakespeare_char.Code import Code
+from torch.nn import functional as F
 # -----------------------------------------------------------------------------
 # default config values designed to train a gpt2 (124M) on OpenWebText
 # I/O
@@ -233,6 +234,7 @@ if ddp:
 def estimate_loss():
     out = {}
     model.eval()
+    
     for split in ['train', 'val']:
         losses = torch.zeros(eval_iters)
         for k in range(eval_iters):
@@ -242,14 +244,19 @@ def estimate_loss():
             losses[k] = loss.item()
             np_X = X.tolist()
             np_Y = Y.tolist()
-            np_logits = logits.tolist()
-            #for i in range (0, len(np_X)):
-            #    print('X')
-            #    print(shakespeare_char_coder.decode(np_X[i]))
-            #    print('Y')
-            #    print(shakespeare_char_coder.decode(np_Y[i]))
-                #print('logits')
-                #print(shakespeare_char_coder.decode(np_logits[i]))            
+            #np_logits = logits.tolist()
+            for i in range (0, len(np_X)):
+                print('X')
+                print(shakespeare_char_coder.decode(np_X[i]))
+                print('Y')
+                print(shakespeare_char_coder.decode(np_Y[i]))
+                item = []
+                print('logits')
+                for j in range (0, logits.shape[1]):
+                    np_logits_all = logits[i,j,:]
+                    np_logits = F.softmax(np_logits_all, dim=-1)
+                    item.extend(torch.multinomial(np_logits, num_samples=1).tolist())
+                print(shakespeare_char_coder.decode(item))
         out[split] = losses.mean()
     model.train()
     return out

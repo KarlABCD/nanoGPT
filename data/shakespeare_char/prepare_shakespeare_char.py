@@ -9,7 +9,7 @@ import pickle
 import requests
 import numpy as np
 import csv
-from data.shakespeare_char.Code import Code
+from Code import Code
 
 # download the tiny shakespeare dataset
 input_file_path = os.path.join(os.path.dirname(__file__), 'input.txt')
